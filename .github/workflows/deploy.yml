@@ -23,6 +23,7 @@ jobs:
                       fi
 
                       cd /opt/laravel-app
+
                       echo "📥 Pull latest code"
                       git pull origin main
 
@@ -37,14 +38,13 @@ jobs:
                       echo "🔨 Rebuild and start containers"
                       docker compose up -d --build
 
-                      cp .env.example .env
+                      echo "📋 Copying .env and running artisan commands"
+                      docker exec laravel-app cp .env.example .env
+                      docker exec laravel-app php artisan key:generate
+                      docker exec laravel-app php artisan config:cache
+                      docker exec laravel-app php artisan migrate --force
+
                       echo "📦 Installing Laravel dependencies"
                       docker exec laravel-app composer install --no-interaction --prefer-dist --optimize-autoloader
-
-                      docker exec laravel-app php artisan key:generate
-
-                      echo "⚙️ Running Laravel post-deploy commands"
-                      docker exec laravel-app php artisan migrate --force
-                      docker exec laravel-app php artisan config:cache
 
                       echo "✅ Deployment done!"
