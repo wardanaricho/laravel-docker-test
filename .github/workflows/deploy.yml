@@ -17,21 +17,32 @@ jobs:
                   username: ${{ secrets.USER }}
                   key: ${{ secrets.SSH_KEY }}
                   script: |
+                      echo "🔁 Cloning repository if not exists"
                       if [ ! -d /opt/laravel-app/.git ]; then
                         git clone https://github.com/wardanaricho/laravel-docker-test.git /opt/laravel-app
                       fi
 
                       cd /opt/laravel-app
+                      echo "📥 Pull latest code"
                       git pull origin main
 
+                      echo "🧹 Clean up old containers"
                       docker rm -f laravel-app || true
                       docker rm -f mysql-db || true
                       docker rm -f nginx-web || true
-                      docker compose down --remove-orphans
 
+                      echo "🧼 Docker Compose down + clean volumes"
                       docker compose down --remove-orphans --volumes
 
+                      echo "🔨 Rebuild and start containers"
                       docker compose up -d --build
 
+                      cp .env.production .env
+                      echo "📦 Installing Laravel dependencies"
+                      docker exec laravel-app composer install --no-interaction --prefer-dist --optimize-autoloader
+
+                      echo "⚙️ Running Laravel post-deploy commands"
                       docker exec laravel-app php artisan migrate --force
                       docker exec laravel-app php artisan config:cache
+
+                      echo "✅ Deployment done!"
