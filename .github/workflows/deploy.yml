@@ -41,6 +41,8 @@ jobs:
                       echo "📦 Installing Laravel dependencies"
                       docker exec laravel-app composer install --no-interaction --prefer-dist --optimize-autoloader
 
+                      docker exec laravel-app php artisan key:generate
+
                       echo "⚙️ Running Laravel post-deploy commands"
                       docker exec laravel-app php artisan migrate --force
                       docker exec laravel-app php artisan config:cache
