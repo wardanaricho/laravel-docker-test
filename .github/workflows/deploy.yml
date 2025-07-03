@@ -24,8 +24,10 @@ jobs:
                       cd /opt/laravel-app
                       git pull origin main
 
-                      docker container rm -f laravel-app || true
-                      docker container rm -f mysql-db || true
+                      docker rm -f laravel-app || true
+                      docker rm -f mysql-db || true
+                      docker rm -f nginx-web || true
+                      docker compose down --remove-orphans
 
                       docker compose down --remove-orphans --volumes
 
