@@ -1,0 +1,27 @@
+name: Deploy to VPS
+
+on:
+    push:
+        branches:
+            - main
+
+jobs:
+    deploy:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Deploy via SSH
+              uses: appleboy/ssh-action@v1.0.0
+              with:
+                  host: ${{ secrets.HOST }}
+                  username: ${{ secrets.USER }}
+                  key: ${{ secrets.SSH_KEY }}
+                  script: |
+                      if [ ! -d /opt/laravel-app/.git ]; then
+                        git clone https://github.com/wardanaricho/laravel-docker-test.git /opt/laravel-app
+                      fi
+
+                      cd /opt/laravel-app
+                      git pull origin main
+                      docker compose down
+                      docker compose up -d --build
