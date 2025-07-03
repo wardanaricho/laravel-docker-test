@@ -44,9 +44,20 @@ jobs:
                       echo "📦 Installing Laravel dependencies"
                       docker exec laravel-app composer install --no-interaction --prefer-dist --optimize-autoloader
 
-                      echo "⚙️ Running Laravel post-deploy commands"
+                      echo "🔑 Generate app key"
                       docker exec laravel-app php artisan key:generate
-                      docker exec laravel-app php artisan migrate --fresh
+
+                      echo "⏳ Waiting for MySQL to be ready (max 10 tries)..."
+                      for i in {1..10}; do
+                        if docker exec laravel-app php artisan migrate --force; then
+                          echo "✅ Migration success"
+                          break
+                        fi
+                        echo "🔁 Retry $i: Waiting for DB..."
+                        sleep 5
+                      done
+
+                      echo "🧠 Cache config"
                       docker exec laravel-app php artisan config:cache
 
                       echo "✅ Deployment done!"
